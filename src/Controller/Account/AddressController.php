@@ -2,78 +2,37 @@
 
 namespace App\Controller\Account;
 
+use App\Class\Cart;
 use App\Entity\Address;
 use App\Form\AddressUserType;
-use App\Form\PasswordUserType;
 use App\Repository\AddressRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
-class AccountController extends AbstractController
+class AddressController extends AbstractController
 {
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
+
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
     }
-    #[Route('/account', name: 'app_account')]
+
+    #[Route('/account/addresses', name: 'app_account_addresses')]
     public function index(): Response
     {
-        return $this->render('account/index.html.twig', [
-
-        ]);
-    }
-
-    #[Route('/account/password', name: 'app_account_password')]
-    public function password(Request                     $request,
-                             UserPasswordHasherInterface $passwordHasher): Response
-    {
-
-        $user = $this->getUser();
-
-        $passwordForm = $this->createForm(
-            PasswordUserType::class,
-            $user,
-            [
-                'passwordHasher' => $passwordHasher,
-            ]
-        );
-
-        $passwordForm->handleRequest($request);
-
-        if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
-
-            //pas besoin de persist car n est pas un CREATE
-            $this->entityManager->flush();
-
-            $this->addFlash(
-                'success',
-                'Your password has been changed!'
-            );
-        }
-
-        return $this->render('account/password.html.twig', [
-            'password_form' => $passwordForm->createView(),
-        ]);
-    }
-    #[Route('/account/addresses', name: 'app_account_addresses')]
-    public function addresses(): Response
-    {
-        return $this->render('account/addresses.html.twig', [
-
-        ]);
+        return $this->render('account/address/index.html.twig', []);
     }
 
     #[Route('/account/address/delete/{id}', name: 'app_account_address_delete')]
-    public function addressDelete($id, AddressRepository $addressRepository): Response
+    public function delete($id, AddressRepository $addressRepository): Response
     {
         $address = $addressRepository->findOneBy(['id' => $id]);
 
-        if (!$address OR $address->getUser() !== $this->getUser()) {
+        if (!$address or $address->getUser() !== $this->getUser()) {
             return $this->redirectToRoute('app_account_addresses');
         }
 
@@ -86,21 +45,23 @@ class AccountController extends AbstractController
         $this->entityManager->flush();
 
         return $this->redirectToRoute('app_account_addresses');
-
     }
 
     #[Route('/account/address/form/{id}', name: 'app_account_address_form', defaults: ['id' => null])]
-    public function addressForm(Request $request,
-                                $id,
-                                AddressRepository $addressRepository): Response
+    public function form(Request $request,
+                         $id,
+                         AddressRepository $addressRepository,
+                         Cart $cart): Response
     {
-        if ($id) {
+        if ($id)
+        {
             $address = $addressRepository->findOneBy(['id' => $id]);
 
-            if (!$address OR $address->getUser() !== $this->getUser()) {
+            if (!$address or $address->getUser() !== $this->getUser()) {
                 return $this->redirectToRoute('app_account_addresses');
             }
-        } else {
+        } else
+        {
             $address = new Address();
             $address->setUser($this->getUser());
         }
@@ -119,10 +80,15 @@ class AccountController extends AbstractController
                 'success',
                 'Addresse correctement enregistré'
             );
+
+            if ($cart->fullQuantity() > 0) {
+                return $this->redirectToRoute('app_order');
+            }
+
             return $this->redirectToRoute('app_account_addresses');
         }
 
-        return $this->render('account/addressForm.html.twig', [
+        return $this->render('account/address/form.html.twig', [
             'addressForm' => $form,
         ]);
     }

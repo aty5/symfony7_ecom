@@ -22,4 +22,30 @@ class ProductController extends AbstractController
             'product' => $product,
         ]);
     }
+
+    /*
+    // automapping #[MapEntity()], autre facon de faire
+    #[Route('/produit/{slug}', name: 'app_product')]
+    public function index(#[MapEntity(slug: 'slug')] Product $product): Response
+    {
+        if (!$product) {
+            return $this->redirectToRoute('app_home');
+        }
+        return $this->render('product/index.html.twig', [
+            'product' => $product,
+        ]);
+    }
+    */
+
+    /*
+        //symfony docs
+        //avec id, possible de raccourcir le code ainsi:
+         #[Route('/product/{id}')]
+         public function show(Product $product): Response
+         {
+             // use the Product!
+             // ...
+         }
+    */
+
 }
