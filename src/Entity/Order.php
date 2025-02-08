@@ -64,6 +64,17 @@ class Order
         return $totalTva;
     }
 
+    public function getTotalWT()
+    {
+        $totalTTC = 0;
+        $products = $this->getOrderDetails();
+        foreach ($products as $product) {
+            $coeff = 1 + ($product->getProductTva() / 100);
+            $totalTTC += ($product->getProductPrice() * $coeff) * $product->getProductQuantity();
+        }
+        return $totalTTC + $this->getCarrierPrice();
+    }
+
     public function getId(): ?int
     {
         return $this->id;

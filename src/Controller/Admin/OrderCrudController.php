@@ -41,16 +41,26 @@ class OrderCrudController extends AbstractCrudController
             AssociationField::new('user')->setLabel('Utilisateur'),
             TextField::new('carrierName')->setLabel('Transporteur'),
             NumberField::new('totalTVA')->setLabel('Total TVA'),
+            NumberField::new('totalWT')->setLabel('Total TTC'),
         ];
     }
 
 
     public function configureActions(Actions $actions): Actions
     {
+        $show = Action::new('Afficher')->linkToCrudAction('show');
+
         return $actions
             ->remove(Crud::PAGE_INDEX, Action::NEW)
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
-            ;
+            ->add(Crud::PAGE_INDEX, $show);
+        //->add(Crud::PAGE_INDEX, Action::DETAIL)
+        //;
     }
+
+    public function show(){
+
+    }
+
 }
