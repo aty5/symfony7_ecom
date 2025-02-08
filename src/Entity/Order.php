@@ -52,6 +52,18 @@ class Order
         $this->orderDetails = new ArrayCollection();
     }
 
+    public function getTotalTva()
+    {
+        $totalTva = 0;
+        $products = $this->getOrderDetails();
+
+        foreach ($products as $product) {
+            $coeff = $product->getProductTva() / 100;
+            $totalTva += $product->getProductPrice() * $coeff;
+        }
+        return $totalTva;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

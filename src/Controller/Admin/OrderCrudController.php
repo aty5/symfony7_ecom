@@ -26,8 +26,7 @@ class OrderCrudController extends AbstractCrudController
     {
         return $crud
             ->setEntityLabelInSingular('Commande')
-            ->setEntityLabelInPlural('Commandes')
-            // ...
+            ->setEntityLabelInPlural('Commandes')// ...
             ;
     }
 
@@ -38,7 +37,10 @@ class OrderCrudController extends AbstractCrudController
             IdField::new('id'),
             DateField::new('createdAt')->setLabel('Date'),
             TextField::new('title')->setLabel('Titre'),
+            NumberField::new('state')->setLabel('Statut')->setTemplatePath('/admin/state.html.twig'),
+            AssociationField::new('user')->setLabel('Utilisateur'),
             TextField::new('carrierName')->setLabel('Transporteur'),
+            NumberField::new('totalTVA')->setLabel('Total TVA'),
         ];
     }
 
