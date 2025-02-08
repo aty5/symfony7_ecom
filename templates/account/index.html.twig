@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container my-5">
+        <h1>Espace Mon Compte</h1>
+        <a href="{{path('app_logout') }}">Se déconnecter</a>
+        <a href="{{path('') }}">Modifier MdP</a>
+    </div>
+{% endblock %}
