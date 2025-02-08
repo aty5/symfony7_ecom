@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Class\Mail;
 use App\Entity\User;
 use App\Form\RegisterUserType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,7 +24,6 @@ class RegisterController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-
             $entityManager->persist($user);
             $entityManager->flush();
 
@@ -31,6 +31,16 @@ class RegisterController extends AbstractController
                 'success',
                 'Account created, you can connect!'
             );
+
+            // envoi d un mail de confirmation
+            $mail = new Mail();
+
+            $vars = [
+                'firstname' => $user->getFirstName(),
+
+            ];
+
+            $mail->send($user->getEmail(), $user->getFirstname().' '.$user->getLastname(), 'Bienvenue dans Symfony7_ecom', 'welcome.html', $vars);
 
             return $this->redirectToRoute('app_login');
         }
