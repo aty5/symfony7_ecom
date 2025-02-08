@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\OrderRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Stripe\Checkout\Session;
 use Stripe\Stripe;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,6 +12,16 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class PaymentController extends AbstractController
 {
+    private EntityManagerInterface $entityManager;
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     */
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+
 
     #[Route('/order/payment/{id_order}', name: 'app_payment')]
     public function index($id_order, OrderRepository $orderRepository): Response
@@ -66,13 +77,37 @@ class PaymentController extends AbstractController
                 $products_for_stripe
             ]],
             'mode' => 'payment',
-            'success_url' => $_ENV['DOMAIN'] . '/success.html',
-            'cancel_url' => $_ENV['DOMAIN'] . '/cancel.html',
+            'success_url' => $_ENV['DOMAIN'] . '/order/payment/success/{CHECKOUT_SESSION_ID}',
+            'cancel_url' => $_ENV['DOMAIN'] . '/my-cart/cancel',
         ]);
 
         //header("HTTP/1.1 303 See Other");
         //header("Location: " . $checkout_session->url);
 
+        $order->setStripeSessionId($checkout_session->id);
+        $this->entityManager->flush();
         return $this->redirect($checkout_session->url);
+    }
+
+    #[Route('/order/payment/success/{stripe_session_id}', name: 'app_payment_success')]
+    public function success($stripe_session_id, OrderRepository $orderRepository): Response
+    {
+        $order = $orderRepository->findOneBy([
+            'stripe_session_id' => $stripe_session_id,
+            'user' => $this->getUser()
+
+        ]);
+        if (!$order) {
+            return $this->redirectToRoute('app_home');
+        }
+        if ($order->getState() == 1) {
+            $order->setState(2);
+        }
+
+        $this->entityManager->flush();
+
+        return $this->render('payment/success.html.twig', [
+            'order' => $order,
+        ]);
     }
 }

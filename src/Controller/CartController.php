@@ -11,9 +11,15 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class CartController extends AbstractController
 {
-    #[Route('/mon-panier', name: 'app_cart')]
-    public function index(Cart $cart): Response
+    #[Route('/my-cart/{motif}', name: 'app_cart', defaults: ['motif' => null])]
+    public function index(Cart $cart, $motif): Response
     {
+        if ($motif === 'cancel') {
+            $this->addFlash(
+                'info',
+                'Paiment annulé : vous pouvez mettre a jour le panier et la commande'
+            );
+        }
         return $this->render('cart/index.html.twig', [
             'cart' => $cart->getCart(),
             'totalWT' => $cart->getTotalWT(),
