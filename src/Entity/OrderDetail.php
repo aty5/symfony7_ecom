@@ -32,6 +32,13 @@ class OrderDetail
     #[ORM\Column]
     private ?float $productTva = null;
 
+    public function getProductPriceWT()
+    {
+        $coeff = 1 + ($this->productTva/100);
+
+        return $coeff * $this->productPrice;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

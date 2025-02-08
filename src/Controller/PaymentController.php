@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\OrderRepository;
 use Stripe\Checkout\Session;
 use Stripe\Stripe;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -10,30 +11,63 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class PaymentController extends AbstractController
 {
-    #[Route('/ordre/payment', name: 'app_payment')]
-    public function index(): Response
+
+    #[Route('/order/payment/{id_order}', name: 'app_payment')]
+    public function index($id_order, OrderRepository $orderRepository): Response
     {
-       //die('c est bien moi, le PaymentController');
-        Stripe::setApiKey('sk_test_51QinuHFTwTPYuwwqpfL8QnMtr0vdqE0Bi099H7u4CsJ5cJ3zUubCEJO3ZAHI8zAWQoYf70NQen7Q8oqzoOLHvaYB006BtAQrwC');
+        Stripe::setApiKey($_ENV['STRIPE_SECRET_KEY']);
 
-        $YOUR_DOMAIN = 'http://127.0.0.1:8000';
+        //sécurisation url en dur en verifiant user
+        $order = $orderRepository->findOneBy([
+            'id' => $id_order,
+            'user' => $this->getUser()
+        ]);
 
-        //possible d'ajouter produits via interface stripe visuel
-        $checkout_session = Session::create([
-            'line_items' => [[
-                # Provide the exact Price ID (e.g. pr_1234) of the product you want to sell
+        if (!$order) {
+            return $this->redirectToRoute('app_home');
+        }
+
+        $products_for_stripe = [];
+        foreach ($order->getOrderDetails() as $product) {
+            $products_for_stripe[] = [
                 'price_data' => [
                     'currency' => 'eur',
-                    'unit_amount' => '2000',
+                    'unit_amount' => number_format($product->getProductPriceWT() * 100, 0, '', ''), //format stripe
                     'product_data' => [
-                        'name' => 'Test Product',
+                        'name' => $product->getProductName(),
+                        'images' => [ //non visible en env de dev
+                            $_ENV['DOMAIN'] . '/uploads/' . $product->getProductIllustration()
+                        ]
                     ]
                 ],
-                'quantity' => 1,
+                'quantity' => $product->getProductQuantity(),
+            ];
+        }
+        $products_for_stripe[] = [
+            'price_data' => [
+                'currency' => 'eur',
+                'unit_amount' => number_format($order->getCarrierPrice() * 100, 0, 0, 0), //format stripe
+                'product_data' => [
+                    'name' => 'Transporteur : ' . $order->getCarrierName(),
+                ]
+            ],
+            'quantity' => 1,
+        ];
+
+
+        //die('c est bien moi, le PaymentController');
+        Stripe::setApiKey('sk_test_51QinuHFTwTPYuwwqpfL8QnMtr0vdqE0Bi099H7u4CsJ5cJ3zUubCEJO3ZAHI8zAWQoYf70NQen7Q8oqzoOLHvaYB006BtAQrwC');
+        $YOUR_DOMAIN = 'http://127.0.0.1:8000';
+
+        //possible d'ajouter produits via interface stripe visuel mais redondant/inutile
+        $checkout_session = Session::create([
+            'customer_email' => $this->getUser()->getEmail(),
+            'line_items' => [[
+                $products_for_stripe
             ]],
             'mode' => 'payment',
-            'success_url' => $YOUR_DOMAIN . '/success.html',
-            'cancel_url' => $YOUR_DOMAIN . '/cancel.html',
+            'success_url' => $_ENV['DOMAIN'] . '/success.html',
+            'cancel_url' => $_ENV['DOMAIN'] . '/cancel.html',
         ]);
 
         //header("HTTP/1.1 303 See Other");
