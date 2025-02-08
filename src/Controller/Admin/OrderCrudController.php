@@ -38,8 +38,6 @@ class OrderCrudController extends AbstractCrudController
             IdField::new('id'),
             DateField::new('createdAt')->setLabel('Date'),
             TextField::new('title')->setLabel('Titre'),
-            NumberField::new('state')->setLabel('Statut'),
-            AssociationField::new('user'),
             TextField::new('carrierName')->setLabel('Transporteur'),
         ];
     }
@@ -52,5 +50,5 @@ class OrderCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::DELETE)
             ->remove(Crud::PAGE_INDEX, Action::EDIT)
             ;
-}
+    }
 }
