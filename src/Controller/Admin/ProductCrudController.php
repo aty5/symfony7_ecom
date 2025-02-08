@@ -34,6 +34,12 @@ class ProductCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
+        //enlever "soucis img input demandé" lors d'un EDIT produit
+        $required = true;
+        if ($pageName === 'edit') {
+            $required = false;
+        }
+
         return [
             TextField::new('name')->setLabel("Nom")->setHelp("Nom du produit"),
 
@@ -42,7 +48,13 @@ class ProductCrudController extends AbstractCrudController
 
             SlugField::new('slug')->setTargetFieldName('name')->setLabel("URL")->setHelp("URL généré automatiquement SlugField"),
 
-            ImageField::new('illustration')->setLabel("Image")->setHelp("Image du produit en 600x600 px")->setUploadDir('/public/uploads')->setBasePath('/uploads')->setUploadedFileNamePattern('[year]-[month]-[day]-[contenthash].[extension]'),
+            ImageField::new('illustration')
+                ->setLabel("Image")
+                ->setHelp("Image du produit en 600x600 px")
+                ->setUploadDir('/public/uploads')
+                ->setBasePath('/uploads')
+                ->setUploadedFileNamePattern('[year]-[month]-[day]-[contenthash].[extension]')
+                ->setRequired($required),
 
             NumberField::new('price')->setLabel("Prix HT")->setHelp("Prix HT du produit"),
 
