@@ -6,6 +6,7 @@ use App\Entity\Order;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
@@ -59,8 +60,12 @@ class OrderCrudController extends AbstractCrudController
         //;
     }
 
-    public function show(){
-
+    public function show(AdminContext $adminContext)
+    {
+        $order = $adminContext->getEntity()->getInstance();
+        return $this->render('admin/order.html.twig', [
+            'order' => $order,
+        ]);
     }
 
 }
